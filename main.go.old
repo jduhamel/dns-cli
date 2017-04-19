@@ -1,0 +1,37 @@
+package main
+
+//
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/dnsimple/dnsimple-go/dnsimple"
+)
+
+func main() {
+	oauthToken := os.Getenv("DNSIMPLE_OAUTH_TOKEN")
+
+	if oauthToken == "" {
+		log.Fatalf("DNSIMPLE_OAUTH_TOKEN is not set")
+	}
+	client := dnsimple.NewClient(dnsimple.NewOauthTokenCredentials(oauthToken))
+	whoamiResponse, err := client.Identity.Whoami()
+	if err != nil {
+		log.Fatalf("Whoami() returned error: %v\n", err)
+	}
+	fmt.Printf("%+v\n", whoamiResponse.Data.Account)
+
+	accountID := strconv.Itoa(whoamiResponse.Data.Account.ID)
+
+	listDomainsResponse, err := client.Domains.ListDomains(accountID, nil)
+	if err != nil {
+		log.Fatalf("ListDomains() returned eror: %v\n", err)
+	}
+	for domain := range listDomainsResponse.Data {
+		fmt.Printf("%+v\n", domain)
+	}
+
+}
